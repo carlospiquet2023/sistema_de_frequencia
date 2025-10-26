@@ -652,32 +652,32 @@
                     </div>
                 </div>
                 
-                <div class="flex flex-wrap gap-3">
-                    <button id="btn-add-aluno" class="btn bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition-transform">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <button id="btn-add-aluno" class="btn bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
                         <i class="fas fa-user-plus mr-2"></i>
                         Novo Aluno
                     </button>
-                    <button id="btn-colunas" class="btn bg-gradient-to-r from-purple-500 to-purple-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition-transform">
+                    <button id="btn-colunas" class="btn bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
                         <i class="fas fa-columns mr-2"></i>
                         Colunas
                     </button>
-                    <button id="btn-filtros" class="btn bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition-transform">
+                    <button id="btn-filtros" class="btn bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
                         <i class="fas fa-filter mr-2"></i>
                         Filtros
                     </button>
-                    <button id="btn-grafico" class="btn bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition-transform">
+                    <button id="btn-grafico" class="btn bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
                         <i class="fas fa-chart-pie mr-2"></i>
                         Gráficos
                     </button>
-                    <button id="btn-resetar" class="btn bg-gradient-to-r from-orange-500 to-orange-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition-transform">
+                    <button id="btn-resetar" class="btn bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
                         <i class="fas fa-trash-restore mr-2"></i>
                         Resetar Tudo
                     </button>
-                    <button id="export-excel" class="btn bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition-transform">
+                    <button id="export-excel" class="btn bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
                         <i class="fas fa-file-excel mr-2"></i>
                         Excel
                     </button>
-                    <button id="export-pdf" class="btn bg-gradient-to-r from-red-500 to-red-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition-transform">
+                    <button id="export-pdf" class="btn bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
                         <i class="fas fa-file-pdf mr-2"></i>
                         PDF
                     </button>
@@ -790,9 +790,7 @@
                         <i class="fas fa-code mr-2"></i>
                         Sistema de Gestão de Frequência Enterprise
                     </p>
-                    <p class="text-sm opacity-90 mb-3">
-                        Desenvolvido com <i class="fas fa-heart text-red-400 mx-1 pulse-custom"></i> e expertise técnica para gestão educacional
-                    </p>
+                
                     <p class="text-xs opacity-75 mb-2">
                         <i class="fas fa-copyright mr-1"></i>
                         Copyright © 2025 - Todos os direitos reservados
@@ -1040,6 +1038,7 @@
             // Alunos
             setAlunos(alunos) {
                 this.alunos = alunos;
+                this.ordenarAlunosAlfabeticamente();
                 this.notify();
             }
 
@@ -1050,7 +1049,16 @@
                     aluno.attendance[evento.id] = { status: 'falta', obs: '' };
                 });
                 this.alunos.push(aluno);
+                this.ordenarAlunosAlfabeticamente();
                 this.notify();
+            }
+
+            ordenarAlunosAlfabeticamente() {
+                this.alunos.sort((a, b) => {
+                    const nomeA = (a.nome || '').toLowerCase().trim();
+                    const nomeB = (b.nome || '').toLowerCase().trim();
+                    return nomeA.localeCompare(nomeB, 'pt-BR');
+                });
             }
 
             removeAluno(alunoId) {
@@ -1565,6 +1573,7 @@
                 this.dataModel = dataModel;
                 this.currentPage = 1;
                 this.setupEventListeners();
+                this.setupTableDelegation(); // Delegação de eventos da tabela
                 this.dataModel.subscribe(() => this.render());
             }
 
@@ -2070,12 +2079,12 @@
                                         <option value="falta" ${att.status === 'falta' ? 'selected' : ''}>❌ Falta</option>
                                         <option value="presente" ${att.status === 'presente' ? 'selected' : ''}>✅ Presente</option>
                                     </select>
-                                    <input type="text" 
-                                           data-aluno-id="${aluno.id}" 
-                                           data-evento-id="${evento.id}"
-                                           class="attendance-obs w-full p-2 border-2 border-gray-200 rounded-lg text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
-                                           value="${att.obs}"
-                                           placeholder="Observação...">
+                                    <button data-aluno-id="${aluno.id}" 
+                                            data-evento-id="${evento.id}"
+                                            class="attendance-obs-btn w-full p-2 border-2 rounded-lg text-sm text-left transition-all ${att.obs ? 'border-purple-500 bg-purple-50 text-purple-800 font-medium' : 'border-gray-200 bg-white text-gray-400 hover:border-purple-300'}">
+                                        <i class="fas fa-comment-dots mr-2"></i>
+                                        ${att.obs || 'Adicionar observação...'}
+                                    </button>
                                 </div>
                             </td>
                         `;
@@ -2101,15 +2110,14 @@
                 });
 
                 tbody.innerHTML = bodyHtml;
-
-                // Event listeners para a tabela
-                this.setupTableEventListeners();
             }
 
-            setupTableEventListeners() {
-                // Status
-                document.querySelectorAll('.attendance-select').forEach(select => {
-                    select.addEventListener('change', (e) => {
+            setupTableDelegation() {
+                const tbody = document.getElementById('corpo-tabela');
+                
+                // Delegação para select de status
+                tbody.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('attendance-select')) {
                         const alunoId = e.target.dataset.alunoId;
                         const eventoId = e.target.dataset.eventoId;
                         const status = e.target.value;
@@ -2124,19 +2132,195 @@
                             e.target.className = e.target.className.replace(/border-green-\d+|bg-green-\d+|text-green-\d+/g, '');
                             e.target.classList.add('border-red-500', 'bg-red-50', 'text-red-700');
                         }
+                    }
+                });
+
+                // Delegação para botão de observações
+                tbody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.attendance-obs-btn');
+                    if (btn) {
+                        const alunoId = btn.dataset.alunoId;
+                        const eventoId = btn.dataset.eventoId;
+                        const aluno = this.dataModel.alunos.find(a => a.id === alunoId);
+                        const att = aluno.attendance[eventoId] || { obs: '' };
+                        
+                        this.mostrarModalObservacao(alunoId, eventoId, att.obs);
+                    }
+                });
+            }
+
+            mostrarModalObservacao(alunoId, eventoId, obsAtual) {
+                const html = `
+                    <div class="space-y-4">
+                        <div class="p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                            <p class="text-sm font-semibold text-blue-900">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Selecione um tipo de observação ou escreva uma personalizada
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Tipo de Observação:</label>
+                            <select id="tipo-obs" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all font-medium">
+                                <option value="">-- Selecione uma opção --</option>
+                                <option value="atestado"> Atestado Médico</option>
+                                <option value="procurador">Liberado pelo Procurador</option>
+                                <option value="justificada">Falta Justificada</option>
+                                <option value="evento">Participando de Evento</option>
+                                <option value="outro">Outro (Personalizar)</option>
+                            </select>
+                        </div>
+
+                        <div id="campo-procurador" class="hidden">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nome do Procurador:</label>
+                            <input type="text" 
+                                   id="input-procurador" 
+                                   class="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all"
+                                   placeholder="Digite o nome do procurador...">
+                        </div>
+
+                        <div id="campo-outro" class="hidden">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Observação Personalizada:</label>
+                            <textarea id="input-outro" 
+                                      rows="3"
+                                      class="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all resize-none"
+                                      placeholder="Digite sua observação..."></textarea>
+                        </div>
+
+                        <div id="preview-obs" class="hidden p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border-2 border-purple-200">
+                            <p class="text-xs font-bold text-gray-600 mb-2">PRÉVIA DA OBSERVAÇÃO:</p>
+                            <p id="preview-text" class="text-sm font-semibold text-purple-900"></p>
+                        </div>
+
+                        ${obsAtual ? `
+                            <div class="p-4 bg-yellow-50 rounded-xl border-l-4 border-yellow-500">
+                                <p class="text-xs font-bold text-yellow-800 mb-1">Observação Atual:</p>
+                                <p class="text-sm text-yellow-900">${obsAtual}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                ModalManager.show(
+                    '<i class="fas fa-comment-medical mr-2"></i>Adicionar Observação',
+                    html,
+                    [
+                        {
+                            label: '<i class="fas fa-times mr-2"></i>Cancelar',
+                            class: 'bg-gray-300 text-gray-700 hover:bg-gray-400',
+                            callback: () => {}
+                        },
+                        {
+                            label: '<i class="fas fa-eraser mr-2"></i>Limpar',
+                            class: 'bg-orange-500 text-white hover:bg-orange-600',
+                            callback: () => {
+                                this.dataModel.updateAttendance(alunoId, eventoId, { obs: '' });
+                                ToastManager.show('Observação removida', 'info');
+                            }
+                        },
+                        {
+                            label: '<i class="fas fa-save mr-2"></i>Salvar',
+                            class: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
+                            callback: () => {
+                                const tipoObs = document.getElementById('tipo-obs').value;
+                                let observacao = '';
+
+                                if (tipoObs === 'atestado') {
+                                    observacao = 'Atestado Médico';
+                                } else if (tipoObs === 'procurador') {
+                                    const nomeProcurador = document.getElementById('input-procurador').value.trim();
+                                    if (!nomeProcurador) {
+                                        ToastManager.show('Digite o nome do procurador', 'warning');
+                                        return;
+                                    }
+                                    observacao = `Liberado pelo Procurador: ${nomeProcurador}`;
+                                } else if (tipoObs === 'justificada') {
+                                    observacao = 'Falta Justificada';
+                                } else if (tipoObs === 'evento') {
+                                    observacao = 'Participando de Evento';
+                                } else if (tipoObs === 'outro') {
+                                    observacao = document.getElementById('input-outro').value.trim();
+                                    if (!observacao) {
+                                        ToastManager.show('Digite a observação personalizada', 'warning');
+                                        return;
+                                    }
+                                } else {
+                                    ToastManager.show('Selecione um tipo de observação', 'warning');
+                                    return;
+                                }
+
+                                this.dataModel.updateAttendance(alunoId, eventoId, { obs: observacao });
+                                ToastManager.show('Observação salva com sucesso!', 'success');
+                            }
+                        }
+                    ]
+                );
+
+                // Event listeners do modal
+                setTimeout(() => {
+                    const tipoObsSelect = document.getElementById('tipo-obs');
+                    const campoProcurador = document.getElementById('campo-procurador');
+                    const campoOutro = document.getElementById('campo-outro');
+                    const previewObs = document.getElementById('preview-obs');
+                    const previewText = document.getElementById('preview-text');
+                    const inputProcurador = document.getElementById('input-procurador');
+                    const inputOutro = document.getElementById('input-outro');
+
+                    // Atualizar preview
+                    const atualizarPreview = () => {
+                        const tipo = tipoObsSelect.value;
+                        let preview = '';
+
+                        if (tipo === 'atestado') {
+                            preview = 'Atestado Médico';
+                        } else if (tipo === 'procurador') {
+                            const nome = inputProcurador.value.trim();
+                            preview = nome ? `Liberado pelo Procurador: ${nome}` : '⚖️ Liberado pelo Procurador: [Nome do Procurador]';
+                        } else if (tipo === 'justificada') {
+                            preview = 'Falta Justificada';
+                        } else if (tipo === 'evento') {
+                            preview = 'Participando de Evento';
+                        } else if (tipo === 'outro') {
+                            preview = inputOutro.value.trim() || '[Digite sua observação]';
+                        }
+
+                        if (preview) {
+                            previewText.textContent = preview;
+                            previewObs.classList.remove('hidden');
+                        } else {
+                            previewObs.classList.add('hidden');
+                        }
+                    };
+
+                    // Listener para mudança de tipo
+                    tipoObsSelect.addEventListener('change', () => {
+                        const tipo = tipoObsSelect.value;
+
+                        // Esconder todos os campos extras
+                        campoProcurador.classList.add('hidden');
+                        campoOutro.classList.add('hidden');
+
+                        // Mostrar campo específico
+                        if (tipo === 'procurador') {
+                            campoProcurador.classList.remove('hidden');
+                            setTimeout(() => inputProcurador.focus(), 100);
+                        } else if (tipo === 'outro') {
+                            campoOutro.classList.remove('hidden');
+                            setTimeout(() => inputOutro.focus(), 100);
+                        }
+
+                        atualizarPreview();
                     });
-                });
 
-                // Observações (com debounce)
-                document.querySelectorAll('.attendance-obs').forEach(input => {
-                    input.addEventListener('input', Utils.debounce((e) => {
-                        const alunoId = e.target.dataset.alunoId;
-                        const eventoId = e.target.dataset.eventoId;
-                        const obs = e.target.value;
+                    // Listeners para inputs
+                    inputProcurador.addEventListener('input', atualizarPreview);
+                    inputOutro.addEventListener('input', atualizarPreview);
+                }, 100);
+            }
 
-                        this.dataModel.updateAttendance(alunoId, eventoId, { obs });
-                    }, 500));
-                });
+            setupTableEventListeners() {
+                // Este método agora está vazio pois usamos delegação de eventos
+                // Mantido para compatibilidade com o código existente
             }
 
             renderEventosRecentes() {
@@ -2429,13 +2613,12 @@
                     // Adicionar estatísticas
                     header.push('Total Presenças', 'Total Faltas', 'Taxa %');
                     
-                    // Adicionar eventos
-                    this.dataModel.eventos.forEach(e => {
-                        header.push(`${e.nome} (${Utils.formatarData(e.data)})`);
-                    });
-                    data.push(header);
-
-                    // Dados
+                        // Adicionar eventos (Status + Observação)
+                        this.dataModel.eventos.forEach(e => {
+                            header.push(`${e.nome} (${Utils.formatarData(e.data)})`);
+                            header.push(`Observação - ${e.nome}`);
+                        });
+                        data.push(header);                    // Dados
                     this.dataModel.alunos.forEach(aluno => {
                         let totalP = 0, totalF = 0;
                         const row = [];
@@ -2461,10 +2644,11 @@
                         const taxa = Utils.calcularPorcentagem(totalP, totalP + totalF);
                         row.push(totalP, totalF, `${taxa}%`);
 
-                        // Adicionar presenças por evento
+                        // Adicionar presenças por evento com observações
                         this.dataModel.eventos.forEach(e => {
                             const att = aluno.attendance[e.id];
                             row.push(att?.status === 'presente' ? 'Presente' : 'Falta');
+                            row.push(att?.obs || ''); // Adiciona a observação
                         });
 
                         data.push(row);
