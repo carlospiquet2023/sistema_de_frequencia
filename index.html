@@ -606,11 +606,22 @@
                         <div>
                             <label for="horario-evento" class="block text-sm font-semibold text-gray-700 mb-2">
                                 <i class="fas fa-clock mr-2 text-orange-600"></i>
-                                Horário (Opcional)
+                                Horário de Início (Opcional)
                             </label>
                             <input type="time" id="horario-evento"
                                    class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-100 transition-all">
                         </div>
+                        <div>
+                            <label for="horario-termino-evento" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-clock mr-2 text-indigo-600"></i>
+                                Horário de Término (Opcional)
+                            </label>
+                            <input type="time" id="horario-termino-evento"
+                                   class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-6">
                         <div>
                             <label for="local-evento" class="block text-sm font-semibold text-gray-700 mb-2">
                                 <i class="fas fa-map-marker-alt mr-2 text-red-600"></i>
@@ -1539,6 +1550,7 @@
                 const nome = document.getElementById('nome-evento').value.trim();
                 const data = document.getElementById('data-evento').value;
                 const horario = document.getElementById('horario-evento').value;
+                const horarioTermino = document.getElementById('horario-termino-evento').value;
                 const local = document.getElementById('local-evento').value.trim();
 
                 if (!nome || !data) {
@@ -1551,6 +1563,7 @@
                     nome,
                     data,
                     horario,
+                    horarioTermino,
                     local
                 };
 
@@ -1560,6 +1573,7 @@
                 document.getElementById('nome-evento').value = '';
                 document.getElementById('data-evento').valueAsDate = new Date();
                 document.getElementById('horario-evento').value = '';
+                document.getElementById('horario-termino-evento').value = '';
                 document.getElementById('local-evento').value = '';
                 document.getElementById('nome-evento').focus();
 
@@ -1955,6 +1969,7 @@
                                         <div class="font-normal text-gray-500 text-xs mt-1">
                                             ${Utils.formatarData(evento.data)}
                                             ${evento.horario ? `- ${evento.horario}` : ''}
+                                            ${evento.horarioTermino ? ` às ${evento.horarioTermino}` : ''}
                                         </div>
                                         ${evento.local ? `<div class="font-normal text-gray-500 text-xs"><i class="fas fa-map-marker-alt mr-1"></i>${evento.local}</div>` : ''}
                                     </div>
@@ -2340,7 +2355,10 @@
                                 <i class="fas fa-calendar text-purple-600"></i>
                                 <span class="font-semibold text-sm">${evento.nome}</span>
                             </div>
-                            <span class="text-xs text-gray-500">${Utils.formatarData(evento.data)}</span>
+                            <div class="text-xs text-gray-500 text-right">
+                                <div>${Utils.formatarData(evento.data)}</div>
+                                ${evento.horario ? `<div>${evento.horario}${evento.horarioTermino ? ` às ${evento.horarioTermino}` : ''}</div>` : ''}
+                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -2494,7 +2512,14 @@
                     
                     // Adicionar eventos
                     this.dataModel.eventos.forEach(e => {
-                        head[0].push(`${e.nome}\n${Utils.formatarData(e.data)}`);
+                        let eventoHeader = `${e.nome}\n${Utils.formatarData(e.data)}`;
+                        if (e.horario) {
+                            eventoHeader += `\n${e.horario}`;
+                            if (e.horarioTermino) {
+                                eventoHeader += ` às ${e.horarioTermino}`;
+                            }
+                        }
+                        head[0].push(eventoHeader);
                     });
 
                     const body = [];
@@ -2615,7 +2640,14 @@
                     
                         // Adicionar eventos (Status + Observação)
                         this.dataModel.eventos.forEach(e => {
-                            header.push(`${e.nome} (${Utils.formatarData(e.data)})`);
+                            let eventoHeader = `${e.nome} (${Utils.formatarData(e.data)})`;
+                            if (e.horario) {
+                                eventoHeader += ` ${e.horario}`;
+                                if (e.horarioTermino) {
+                                    eventoHeader += ` às ${e.horarioTermino}`;
+                                }
+                            }
+                            header.push(eventoHeader);
                             header.push(`Observação - ${e.nome}`);
                         });
                         data.push(header);                    // Dados
@@ -2753,4 +2785,3 @@
 
 </body>
 </html>
-
