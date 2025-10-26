@@ -692,6 +692,10 @@
                         <i class="fas fa-file-pdf mr-2"></i>
                         PDF
                     </button>
+                    <button id="gerar-lista-assinatura" class="btn bg-gradient-to-r from-teal-500 to-teal-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-clipboard-list mr-2"></i>
+                        Lista
+                    </button>
                 </div>
             </div>
 
@@ -1633,6 +1637,11 @@
                 document.getElementById('btn-grafico').addEventListener('click', () => {
                     this.mostrarGraficos();
                 });
+
+                // Lista de Assinatura
+                document.getElementById('gerar-lista-assinatura').addEventListener('click', () => {
+                    this.mostrarConfigListaAssinatura();
+                });
             }
 
             mostrarFormularioAluno(alunoId = null) {
@@ -2440,6 +2449,477 @@
                         }
                     ]
                 );
+            }
+
+            mostrarConfigListaAssinatura() {
+                if (this.dataModel.alunos.length === 0) {
+                    ToastManager.show('Não há alunos cadastrados para gerar a lista', 'warning');
+                    return;
+                }
+
+                // Opções de colunas disponíveis
+                const colunasDisponiveis = [
+                    { campo: 'nome', label: 'Nome', obrigatorio: true },
+                    { campo: 'cpf', label: 'CPF', obrigatorio: false },
+                    { campo: 'matricula', label: 'Matrícula', obrigatorio: false },
+                    { campo: 'turma', label: 'Turma', obrigatorio: false },
+                    { campo: 'dataAdmissao', label: 'Data de Admissão', obrigatorio: false },
+                    { campo: 'dataNascimento', label: 'Data de Nascimento', obrigatorio: false },
+                    { campo: 'telefone', label: 'Telefone', obrigatorio: false },
+                    { campo: 'email', label: 'E-mail', obrigatorio: false }
+                ];
+
+                const eventosOptions = this.dataModel.eventos.map(evento => 
+                    `<option value="${evento.id}">${evento.nome} - ${Utils.formatarData(evento.data)}</option>`
+                ).join('');
+
+                const html = `
+                    <div class="space-y-6">
+                        <!-- Configurações da Lista -->
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-3">
+                                <i class="fas fa-cog mr-2"></i>Configurações da Lista
+                            </h4>
+                            
+                            <!-- Título da Lista -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Título da Lista</label>
+                                <input type="text" id="titulo-lista" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       value="Lista de Presença" placeholder="Ex: Lista de Presença - Aula do Dia XX/XX/XXXX">
+                            </div>
+
+                            <!-- Subtítulo -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subtítulo (Opcional)</label>
+                                <input type="text" id="subtitulo-lista" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Ex: Disciplina de Matemática - Professor João">
+                            </div>
+
+                            <!-- Data do Evento -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+                                    <input type="date" id="data-lista" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Horário (Opcional)</label>
+                                    <input type="time" id="horario-lista" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+
+                            <!-- Evento Relacionado -->
+                            ${this.dataModel.eventos.length > 0 ? `
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vincular a Evento Existente (Opcional)</label>
+                                <select id="evento-vinculado" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Selecione um evento...</option>
+                                    ${eventosOptions}
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Se selecionado, a data e horário serão preenchidos automaticamente</p>
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Seleção de Colunas -->
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-3">
+                                <i class="fas fa-columns mr-2"></i>Dados dos Alunos a Incluir
+                            </h4>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                ${colunasDisponiveis.map(coluna => `
+                                    <label class="flex items-center space-x-2 p-2 rounded hover:bg-white/50 cursor-pointer">
+                                        <input type="checkbox" 
+                                               class="coluna-checkbox rounded border-gray-300 text-green-600 focus:ring-green-500" 
+                                               value="${coluna.campo}" 
+                                               ${coluna.obrigatorio ? 'checked disabled' : 'checked'}>
+                                        <span class="text-sm font-medium ${coluna.obrigatorio ? 'text-gray-800' : 'text-gray-700'}">${coluna.label}${coluna.obrigatorio ? ' *' : ''}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <p class="text-xs text-gray-600 mt-2">* Campos obrigatórios</p>
+                        </div>
+
+                        <!-- Opções de Layout -->
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-purple-800 mb-3">
+                                <i class="fas fa-layout mr-2"></i>Opções de Layout
+                            </h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Orientação</label>
+                                    <select id="orientacao-lista" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                        <option value="portrait">Retrato</option>
+                                        <option value="landscape" selected>Paisagem</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tamanho da Linha de Assinatura</label>
+                                    <select id="tamanho-assinatura" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                        <option value="pequena">Pequena</option>
+                                        <option value="media" selected>Média</option>
+                                        <option value="grande">Grande</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="incluir-observacoes" 
+                                           class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
+                                    <span class="text-sm font-medium text-gray-700">Incluir coluna para observações</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-gray-800 mb-2">
+                                <i class="fas fa-eye mr-2"></i>Preview
+                            </h4>
+                            <p class="text-sm text-gray-600">A lista será gerada com aproximadamente <span id="preview-alunos">${this.dataModel.alunos.length}</span> alunos</p>
+                        </div>
+                    </div>
+                `;
+
+                ModalManager.show(
+                    '<i class="fas fa-clipboard-list mr-2 text-teal-600"></i>Gerar Lista de Assinatura',
+                    html,
+                    [
+                        {
+                            label: 'Cancelar',
+                            class: 'bg-gray-500 hover:bg-gray-600 text-white',
+                            callback: () => {}
+                        },
+                        {
+                            label: '<i class="fas fa-file-pdf mr-2"></i>Gerar PDF',
+                            class: 'bg-teal-600 hover:bg-teal-700 text-white',
+                            callback: () => this.gerarListaAssinaturaPDF()
+                        }
+                    ]
+                );
+
+                // Configurar event listeners do modal
+                setTimeout(() => {
+                    // Auto-preencher data atual
+                    document.getElementById('data-lista').valueAsDate = new Date();
+
+                    // Listener para evento vinculado
+                    const eventoSelect = document.getElementById('evento-vinculado');
+                    if (eventoSelect) {
+                        eventoSelect.addEventListener('change', (e) => {
+                            const eventoId = e.target.value;
+                            if (eventoId) {
+                                const evento = this.dataModel.eventos.find(ev => ev.id === eventoId);
+                                if (evento) {
+                                    document.getElementById('data-lista').value = evento.data;
+                                    if (evento.horario) {
+                                        document.getElementById('horario-lista').value = evento.horario;
+                                    }
+                                    document.getElementById('titulo-lista').value = `Lista de Presença - ${evento.nome}`;
+                                }
+                            }
+                        });
+                    }
+                }, 100);
+            }
+
+            gerarListaAssinaturaPDF() {
+                try {
+                    // Coletar configurações
+                    const titulo = document.getElementById('titulo-lista').value.trim() || 'Lista de Presença';
+                    const subtitulo = document.getElementById('subtitulo-lista').value.trim();
+                    const data = document.getElementById('data-lista').value;
+                    const horario = document.getElementById('horario-lista').value;
+                    const orientacao = document.getElementById('orientacao-lista').value;
+                    const tamanhoAssinatura = document.getElementById('tamanho-assinatura').value;
+                    const incluirObs = document.getElementById('incluir-observacoes').checked;
+
+                    // Coletar colunas selecionadas
+                    const colunasSelecionadas = Array.from(document.querySelectorAll('.coluna-checkbox:checked'))
+                        .map(cb => cb.value);
+
+                    if (colunasSelecionadas.length === 0) {
+                        ToastManager.show('Selecione pelo menos uma coluna', 'warning');
+                        return;
+                    }
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ 
+                        orientation: orientacao,
+                        unit: 'mm', 
+                        format: 'a4' 
+                    });
+
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const margin = 10;
+                    const contentWidth = pageWidth - (margin * 2);
+
+                    let currentY = margin;
+
+                    // Cabeçalho
+                    doc.setFontSize(18);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(51, 51, 51);
+                    
+                    // Centralizar título
+                    const titleWidth = doc.getTextWidth(titulo);
+                    const titleX = (pageWidth - titleWidth) / 2;
+                    doc.text(titulo, titleX, currentY + 8);
+                    currentY += 15;
+
+                    // Subtítulo
+                    if (subtitulo) {
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(102, 102, 102);
+                        const subtitleWidth = doc.getTextWidth(subtitulo);
+                        const subtitleX = (pageWidth - subtitleWidth) / 2;
+                        doc.text(subtitulo, subtitleX, currentY + 5);
+                        currentY += 12;
+                    }
+
+                    // Data e Horário
+                    if (data || horario) {
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(102, 102, 102);
+                        let dataHorarioText = '';
+                        if (data) dataHorarioText += `Data: ${Utils.formatarData(data)}`;
+                        if (horario) dataHorarioText += (data ? ' | ' : '') + `Horário: ${horario}`;
+                        
+                        const dataWidth = doc.getTextWidth(dataHorarioText);
+                        const dataX = (pageWidth - dataWidth) / 2;
+                        doc.text(dataHorarioText, dataX, currentY + 5);
+                        currentY += 12;
+                    }
+
+                    // Linha separadora
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.5);
+                    doc.line(margin, currentY, pageWidth - margin, currentY);
+                    currentY += 8;
+
+                    // Labels das colunas
+                    const colunasLabels = {
+                        nome: 'Nome',
+                        cpf: 'CPF',
+                        matricula: 'Matrícula',
+                        turma: 'Turma',
+                        dataAdmissao: 'Data Admissão',
+                        dataNascimento: 'Data Nascimento',
+                        telefone: 'Telefone',
+                        email: 'E-mail'
+                    };
+
+                    // Calcular larguras das colunas de forma inteligente
+                    const assinaturaWidths = {
+                        pequena: 30,
+                        media: 40,
+                        grande: 50
+                    };
+                    const assinaturaWidth = assinaturaWidths[tamanhoAssinatura];
+                    const obsWidth = incluirObs ? 35 : 0; // Aumentar largura da coluna de observações
+                    const dadosWidth = contentWidth - assinaturaWidth - obsWidth;
+                    
+                    // Definir larguras específicas para cada tipo de coluna
+                    const largurasPredefinidas = {
+                        nome: 45,         // Nome precisa de mais espaço (reduzido para compensar obs)
+                        cpf: 32,          // CPF formatado precisa de espaço fixo
+                        matricula: 22,    // Matrícula geralmente é curta
+                        turma: 18,        // Turma é curta
+                        dataAdmissao: 25, // Data formatada precisa de espaço fixo
+                        dataNascimento: 25, // Data formatada precisa de espaço fixo
+                        telefone: 28,     // Telefone precisa de espaço
+                        email: 35         // Email pode ser longo
+                    };
+                    
+                    // Calcular largura total necessária para colunas com largura fixa
+                    let larguraFixaTotal = 0;
+                    let colunasFlexiveis = [];
+                    
+                    colunasSelecionadas.forEach(coluna => {
+                        if (largurasPredefinidas[coluna]) {
+                            larguraFixaTotal += largurasPredefinidas[coluna];
+                        } else {
+                            colunasFlexiveis.push(coluna);
+                        }
+                    });
+                    
+                    // Calcular largura restante para colunas flexíveis
+                    const larguraRestante = dadosWidth - larguraFixaTotal;
+                    const larguraFlexivel = colunasFlexiveis.length > 0 ? larguraRestante / colunasFlexiveis.length : 0;
+                    
+                    // Criar mapa de larguras por coluna
+                    const largurasPorColuna = {};
+                    colunasSelecionadas.forEach(coluna => {
+                        if (largurasPredefinidas[coluna]) {
+                            largurasPorColuna[coluna] = largurasPredefinidas[coluna];
+                        } else {
+                            largurasPorColuna[coluna] = larguraFlexivel;
+                        }
+                    });
+
+                    // Verificar se as larguras somam mais que o espaço disponível
+                    const larguraTotalCalculada = Object.values(largurasPorColuna).reduce((total, largura) => total + largura, 0);
+                    if (larguraTotalCalculada > dadosWidth) {
+                        // Reduzir proporcionalmente todas as larguras
+                        const fatorReducao = dadosWidth / larguraTotalCalculada;
+                        Object.keys(largurasPorColuna).forEach(coluna => {
+                            largurasPorColuna[coluna] = largurasPorColuna[coluna] * fatorReducao;
+                        });
+                    }
+
+                    // Cabeçalho da tabela
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(51, 51, 51);
+
+                    let currentX = margin;
+                    let headerY = currentY + 6;
+
+                    // Headers das colunas de dados
+                    colunasSelecionadas.forEach(coluna => {
+                        const label = colunasLabels[coluna] || coluna;
+                        const largura = largurasPorColuna[coluna];
+                        doc.text(label, currentX + 2, headerY);
+                        currentX += largura;
+                    });
+
+                    // Header da coluna de assinatura
+                    doc.text('Assinatura', currentX + 2, headerY);
+                    currentX += assinaturaWidth;
+
+                    // Header da coluna de observações
+                    if (incluirObs) {
+                        doc.text('Observações', currentX + 2, headerY);
+                    }
+
+                    currentY += 10;
+
+                    // Linha do cabeçalho
+                    doc.setDrawColor(100, 100, 100);
+                    doc.setLineWidth(0.3);
+                    doc.line(margin, currentY, pageWidth - margin, currentY);
+                    currentY += 2;
+
+                    // Dados dos alunos
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    const rowHeight = tamanhoAssinatura === 'grande' ? 12 : (tamanhoAssinatura === 'media' ? 10 : 8);
+
+                    this.dataModel.alunos.forEach((aluno, index) => {
+                        // Verificar se precisa de nova página
+                        if (currentY + rowHeight > pageHeight - margin) {
+                            doc.addPage();
+                            currentY = margin + 10;
+                        }
+
+                        currentX = margin;
+                        const textY = currentY + (rowHeight / 2) + 2;
+
+                        // Dados do aluno
+                        colunasSelecionadas.forEach(coluna => {
+                            const larguraColuna = largurasPorColuna[coluna];
+                            let valor = aluno[coluna] || '';
+                            
+                            // Formatações especiais
+                            if (coluna === 'cpf' && valor) {
+                                valor = Utils.formatarCPF(valor);
+                            } else if (coluna === 'dataAdmissao' && valor) {
+                                valor = Utils.formatarData(valor);
+                            } else if (coluna === 'dataNascimento' && valor) {
+                                valor = Utils.formatarData(valor);
+                            }
+
+                            // Truncar texto apenas para campos que não são críticos
+                            // CPF, matricula e datas não devem ser truncados
+                            const camposCriticos = ['cpf', 'matricula', 'dataAdmissao', 'dataNascimento'];
+                            
+                            if (!camposCriticos.includes(coluna)) {
+                                const maxWidth = larguraColuna - 4;
+                                while (doc.getTextWidth(valor) > maxWidth && valor.length > 1) {
+                                    valor = valor.slice(0, -1);
+                                }
+                                if (valor !== (aluno[coluna] || '') && valor.length > 3) {
+                                    valor = valor.slice(0, -3) + '...';
+                                }
+                            } else {
+                                // Para campos críticos, ajustar o tamanho da fonte se necessário
+                                const maxWidth = larguraColuna - 4;
+                                let fontSize = 8;
+                                doc.setFontSize(fontSize);
+                                
+                                while (doc.getTextWidth(valor) > maxWidth && fontSize > 6) {
+                                    fontSize -= 0.5;
+                                    doc.setFontSize(fontSize);
+                                }
+                            }
+
+                            doc.text(valor, currentX + 2, textY);
+                            
+                            // Restaurar tamanho da fonte padrão
+                            doc.setFontSize(8);
+                            
+                            // Linha vertical
+                            doc.setDrawColor(200, 200, 200);
+                            doc.line(currentX + larguraColuna, currentY, currentX + larguraColuna, currentY + rowHeight);
+                            
+                            currentX += larguraColuna;
+                        });
+
+                        // Linha de assinatura
+                        const assinaturaY = currentY + rowHeight - 2;
+                        doc.setDrawColor(150, 150, 150);
+                        doc.setLineWidth(0.2);
+                        doc.line(currentX + 5, assinaturaY, currentX + assinaturaWidth - 5, assinaturaY);
+                        
+                        // Linha vertical da assinatura
+                        doc.setDrawColor(200, 200, 200);
+                        doc.setLineWidth(0.3);
+                        doc.line(currentX + assinaturaWidth, currentY, currentX + assinaturaWidth, currentY + rowHeight);
+                        
+                        currentX += assinaturaWidth;
+
+                        // Coluna de observações
+                        if (incluirObs) {
+                            // Linha vertical da coluna de observações (não precisa avançar currentX pois é a última coluna)
+                            doc.setDrawColor(200, 200, 200);
+                            doc.setLineWidth(0.3);
+                            doc.line(currentX + obsWidth, currentY, currentX + obsWidth, currentY + rowHeight);
+                        }
+
+                        // Linha horizontal
+                        doc.setDrawColor(200, 200, 200);
+                        doc.line(margin, currentY + rowHeight, pageWidth - margin, currentY + rowHeight);
+                        
+                        currentY += rowHeight;
+                    });
+
+                    // Rodapé
+                    const footerY = pageHeight - 15;
+                    doc.setFontSize(8);
+                    doc.setTextColor(102, 102, 102);
+                    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} - Sistema de Frequência v${CONFIG.VERSION}`, margin, footerY);
+                    doc.text(`Total de alunos: ${this.dataModel.alunos.length}`, pageWidth - margin - 40, footerY);
+
+                    // Salvar PDF
+                    const nomeArquivo = `Lista_Assinatura_${new Date().toISOString().split('T')[0]}.pdf`;
+                    doc.save(nomeArquivo);
+
+                    ToastManager.show(`Lista de assinatura gerada com sucesso! (${this.dataModel.alunos.length} alunos)`, 'success');
+                    ModalManager.close();
+
+                } catch (error) {
+                    console.error('Erro ao gerar lista:', error);
+                    ToastManager.show('Erro ao gerar lista de assinatura', 'error');
+                }
             }
         }
 
